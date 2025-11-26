@@ -2,6 +2,47 @@
 
 A new Flutter project.
 
+## 🖥️ Cross-Platform Setup (Mac & Windows)
+
+This project is configured to work seamlessly on both Mac and Windows using Git.
+
+### Prerequisites
+
+**On Mac:**
+```bash
+# Flutter SDK should be at: ~/flutter
+# Android SDK should be at: ~/Library/Android/sdk
+```
+
+**On Windows:**
+```bash
+# Flutter SDK should be at: C:\src\flutter (or add to PATH)
+# Android SDK should be at: C:\Users\YourName\AppData\Local\Android\sdk
+```
+
+### First Time Setup
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd a2z
+   ```
+
+2. **Install dependencies**
+   ```bash
+   flutter pub get
+   ```
+
+3. **Run from Android Studio**
+   - Open the project in Android Studio
+   - Select your device/emulator from the top toolbar
+   - Click the green ▶️ Run button
+   - Or press `Shift+F10` (Windows) / `Control+R` (Mac)
+
+### Important Files for Cross-Platform
+- `.idea/runConfigurations/` - Shared run configurations (committed to Git)
+- `.gitignore` - Configured to keep run configs but ignore workspace files
+
 ## Getting Started
 
 # Hub Flux 🚀
