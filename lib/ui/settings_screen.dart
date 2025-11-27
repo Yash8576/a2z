@@ -47,8 +47,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
 
     if (shouldSignOut == true && mounted) {
-      await _authRepo.signOut();
-      // Auth state stream will automatically navigate to sign in
+      try {
+        await _authRepo.signOut();
+        // Auth state stream in main.dart will automatically navigate to sign in screen
+        // No need to manually pop - the StreamBuilder handles it
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error signing out: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
     }
   }
 

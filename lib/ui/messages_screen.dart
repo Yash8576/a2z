@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'chat_screen.dart';
 
 /// Messages screen for chat conversations
 /// MAANG best practices:
@@ -35,10 +36,11 @@ class MessagesScreen extends StatelessWidget {
       ),
       body: StreamBuilder<QuerySnapshot>(
         // Query conversations for current user - O(n) where n = user's conversations
+        // Note: Removed orderBy to avoid composite index requirement
+        // Sorting is done client-side instead
         stream: FirebaseFirestore.instance
             .collection('conversations')
             .where('participants', arrayContains: user.uid)
-            .orderBy('lastMessageTime', descending: true)
             .limit(50) // Limit for performance
             .snapshots(),
         builder: (context, snapshot) {
@@ -78,12 +80,28 @@ class MessagesScreen extends StatelessWidget {
             return _EmptyMessagesView();
           }
 
+          // Sort conversations by lastMessageTime client-side
+          // This avoids needing a Firestore composite index
+          final sortedConversations = List<QueryDocumentSnapshot>.from(conversations);
+          sortedConversations.sort((a, b) {
+            final aData = a.data() as Map<String, dynamic>;
+            final bData = b.data() as Map<String, dynamic>;
+            final aTime = aData['lastMessageTime'] as Timestamp?;
+            final bTime = bData['lastMessageTime'] as Timestamp?;
+
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+
+            return bTime.compareTo(aTime); // Descending order (newest first)
+          });
+
           return ListView.builder(
-            itemCount: conversations.length,
+            itemCount: sortedConversations.length,
             itemBuilder: (context, index) {
-              final conversation = conversations[index].data() as Map<String, dynamic>;
+              final conversation = sortedConversations[index].data() as Map<String, dynamic>;
               return _ConversationTile(
-                conversationId: conversations[index].id,
+                conversationId: sortedConversations[index].id,
                 conversation: conversation,
                 currentUserId: user.uid,
               );
@@ -210,10 +228,14 @@ class _ConversationTile extends StatelessWidget {
               ],
             ),
             onTap: () {
-              // TODO: Navigate to chat screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Open chat with $displayName'),
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatScreen(
+                    otherUserId: otherUserId,
+                    otherUserName: displayName,
+                    conversationId: conversationId,
+                  ),
                 ),
               );
             },

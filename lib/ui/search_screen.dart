@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'user_profile_view_screen.dart';
 
 /// Search screen for finding products, creators, and content
 /// MAANG best practices:
@@ -36,7 +38,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void _onSearchChanged(String query) {
     setState(() {
-      _searchQuery = query.trim();
+      _searchQuery = query.trim().toLowerCase();
     });
   }
 
@@ -194,13 +196,10 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildUserSearchResults() {
+    // For case-insensitive search, we fetch all users and filter on client side
+    // This is acceptable for small user bases. For larger apps, use Algolia or similar
     return StreamBuilder<QuerySnapshot>(
-      stream: _firestore
-          .collection('users')
-          .where('displayName', isGreaterThanOrEqualTo: _searchQuery)
-          .where('displayName', isLessThan: '${_searchQuery}z')
-          .limit(20) // Limit to 20 results for performance - O(k) where k=20
-          .snapshots(),
+      stream: _firestore.collection('users').limit(100).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -227,9 +226,18 @@ class _SearchScreenState extends State<SearchScreen> {
           );
         }
 
-        final users = snapshot.data?.docs ?? [];
+        final allUsers = snapshot.data?.docs ?? [];
 
-        if (users.isEmpty) {
+        // Filter users by display name or email (case-insensitive)
+        final filteredUsers = allUsers.where((doc) {
+          final userData = doc.data() as Map<String, dynamic>;
+          final displayName = (userData['displayName'] ?? '').toString().toLowerCase();
+          final email = (userData['email'] ?? '').toString().toLowerCase();
+
+          return displayName.contains(_searchQuery) || email.contains(_searchQuery);
+        }).toList();
+
+        if (filteredUsers.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -260,12 +268,20 @@ class _SearchScreenState extends State<SearchScreen> {
 
         return ListView.builder(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: users.length,
+          itemCount: filteredUsers.length,
           itemBuilder: (context, index) {
-            final userData = users[index].data() as Map<String, dynamic>;
+            final userDoc = filteredUsers[index];
+            final userData = userDoc.data() as Map<String, dynamic>;
+            final userId = userDoc.id;
             final displayName = userData['displayName'] ?? 'Unknown User';
             final email = userData['email'] ?? '';
             final bio = userData['bio'] ?? '';
+            final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+
+            // Don't show current user in search results
+            if (userId == currentUserId) {
+              return const SizedBox.shrink();
+            }
 
             return Card(
               margin: const EdgeInsets.only(bottom: 8),
@@ -291,10 +307,13 @@ class _SearchScreenState extends State<SearchScreen> {
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, size: 16),
                 onTap: () {
-                  // TODO: Navigate to user profile
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('View profile: $displayName'),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserProfileViewScreen(
+                        userId: userId,
+                        displayName: displayName,
+                      ),
                     ),
                   );
                 },

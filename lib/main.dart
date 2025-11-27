@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 import 'ui/sign_in_screen.dart';
 import 'ui/main_home_screen.dart';
+import 'repositories/local_media_storage.dart';
 
 Future<void> main() async {
   // Initialize Flutter bindings (required for Firebase)
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase - O(1) per app lifetime
-  await Firebase.initializeApp();
+  // Check if Firebase is already initialized to prevent crashes on hot restart
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
+  // Initialize local media storage for images/videos
+  await LocalMediaStorage().initialize();
 
   runApp(const MyApp());
 }

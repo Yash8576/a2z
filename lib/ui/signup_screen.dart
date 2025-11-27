@@ -72,8 +72,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
           'profileImageUrl': '',
           'followers': 0,
           'following': 0,
+          'followersList': [],
+          'followingList': [],
         },
       );
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('🎉 Account created successfully! Welcome to Hub Flux!'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
 
       // Auth state stream will automatically navigate to home
     } catch (e) {

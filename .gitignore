@@ -47,3 +47,28 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Platform-specific files (do not commit)
+# These should be generated on each platform
+/ios/Podfile.lock
+/ios/.symlinks/
+/ios/Flutter/Flutter.podspec
+/ios/Flutter/Flutter.framework
+/ios/Flutter/flutter_export_environment.sh
+/ios/Pods/
+/macos/Podfile.lock
+/macos/Flutter/ephemeral/
+
+# Local environment files
+/android/local.properties
+
+# Firebase configuration (keep these committed)
+# /android/app/google-services.json
+# /ios/Runner/GoogleService-Info.plist
+# /macos/Runner/GoogleService-Info.plist
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+

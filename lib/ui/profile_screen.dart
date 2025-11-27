@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../repositories/user_repository.dart';
 import 'edit_profile_screen.dart';
 import 'settings_screen.dart';
+import 'followers_list_screen.dart';
 
 /// Profile screen showing user information and content
 /// MAANG best practices:
@@ -211,7 +212,16 @@ class ProfileScreen extends StatelessWidget {
                                       label: 'Followers',
                                       value: followers.toString(),
                                       onTap: () {
-                                        // TODO: Navigate to followers list
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => FollowersListScreen(
+                                              userId: user.uid,
+                                              listType: 'followers',
+                                              displayName: displayName,
+                                            ),
+                                          ),
+                                        );
                                       },
                                     ),
                                     if (!isSeller)
@@ -219,7 +229,16 @@ class ProfileScreen extends StatelessWidget {
                                         label: 'Following',
                                         value: following.toString(),
                                         onTap: () {
-                                          // TODO: Navigate to following list
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => FollowersListScreen(
+                                                userId: user.uid,
+                                                listType: 'following',
+                                                displayName: displayName,
+                                              ),
+                                            ),
+                                          );
                                         },
                                       ),
                                     if (isSeller)
